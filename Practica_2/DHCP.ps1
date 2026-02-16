@@ -43,9 +43,9 @@ $dns = ""
 #Variables de filtro
 $FeatureName = "DHCP" #Nombre del servicio para el filtro
 $regex = "^((25[0-5]|2[0-4][0-9]|1?[0-9]?[0-9])\.){3}(25[0-5]|2[0-4][0-9]|1?[0-9]?[0-9])$" #Regex para verificar el formato de las IPv4
-$service = Get-WindowsFeature -Name $FeatureName -ErrorAction SilentlyContinue #Comando para verificar si esta el servicio
+$Feature = Get-WindowsFeature -Name $FeatureName -ErrorAction SilentlyContinue #Comando para verificar si esta el servicio
 
-if ($null -ne $service) {
+if ($Feature.Installed) {
     Write-Host "El servicio DHCP ya está instalado."
 
     Write-Host "Verificando si esta corriendo..."
