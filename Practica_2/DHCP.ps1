@@ -39,6 +39,7 @@ $iniciorango = ""
 $finalrango = ""
 $gateway = ""
 $dns = ""
+$nombre = ""
 
 #Variables de filtro
 $FeatureName = "DHCP" #Nombre del servicio para el filtro
@@ -97,7 +98,7 @@ if ($Feature.Installed) {
         }while(-not $valida)
 
         do{
-            $finalrango = Read-Host "Ingrese el inicio del rango: " 
+            $finalrango = Read-Host "Ingrese el final del rango: " 
 
             if ($finalrango -match $regex){
                 Write-Host "La IP es valida" -ForegroundColor Green
@@ -148,12 +149,24 @@ if ($Feature.Installed) {
             }
         }while(-not $valida)
 
+        do{
+            $nombre = Read-Host "Ingrese nombre para la red:  " 
+            
+            if( -not [string]::IsNullOrEmpty($nombre)){
+                Write-Host "Dominio Valido" -ForegroundColor Green
+                Break
+            }else{
+                Write-Host "El dominio no puede ser vacio" -ForegroundColor Green
+            }
+
+        }While($true)
+
         Write-Host "Instalando el servicio de DHCP...."
         Install-WindowsFeature -Name DHCP -IncludeManagementTools
 
         Write-Host "Asignando las configuraciones del DHCP..."
         Add-DhcpServerv4Scope -Name $nombre -StartRange $iniciorango -EndRange $finalrango -State Active
-        Set-DhcpServerv4OptionValue -ScopeId $segmento -OptionId 3 -Value $ipserver
+        Set-DhcpServerv4OptionValue -ScopeId $segmento -Router $gateway -DnsServer $dns
 
         Write-Host "Reiniciando el servicio de DHCP..."
         Restart-Service -Name DHCP -Force
