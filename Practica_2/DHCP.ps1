@@ -30,7 +30,16 @@ function verificar-segmento {
     }
 }
 
+function formato-concesion {
+    param (
+        [int]$tiempo
+    )
+    $horas = [math]::Floor($tiempo / 60)
+    $minutos = $tiempo % 60
+    $segundos = 0
 
+    return "{0:D2}:{1:D2}:{2:D2}" -f $horas, $minutos, $segundos
+}
 
 #Variables de uso
 $ipserver = ""
@@ -40,6 +49,8 @@ $finalrango = ""
 $gateway = ""
 $dns = ""
 $nombre = ""
+[int]$tiempo = 0
+$concesion = ""
 
 #Variables de filtro
 $FeatureName = "DHCP" #Nombre del servicio para el filtro
@@ -50,7 +61,7 @@ if ($Feature.Installed) {
     Write-Host "El servicio DHCP ya está instalado."
 
     Write-Host "Verificando si esta corriendo..."
-    Get-Service -Name DHCP
+    Get-Service -Name DHCPServer
 } else {
     Write-Host "El servicio de DHCP no esta instalado"
     Write-Host "Iniciando con el proceso de instalacion y configuracion.."
@@ -61,7 +72,7 @@ if ($Feature.Installed) {
         Write-Host "La IP es dinámica."
 
         do{
-            $ipserver = Read-Host "Ingrese la IP que quiere para el servidor: " 
+            $ipserver = Read-Host "Ingrese la IP que quiere para el servidor " 
 
             if ($ipserver -match $regex){
                 Write-Host "La IP es valida" -ForegroundColor Green
@@ -78,7 +89,7 @@ if ($Feature.Installed) {
         $segmento = Obtener-Segmento -IPv4 $ipserver
 
         do{
-            $iniciorango = Read-Host "Ingrese el inicio del rango: " 
+            $iniciorango = Read-Host "Ingrese el inicio del rango " 
 
             if ($iniciorango -match $regex){
                 Write-Host "La IP es valida" -ForegroundColor Green
@@ -98,7 +109,7 @@ if ($Feature.Installed) {
         }while(-not $valida)
 
         do{
-            $finalrango = Read-Host "Ingrese el final del rango: " 
+            $finalrango = Read-Host "Ingrese el final del rango " 
 
             if ($finalrango -match $regex){
                 Write-Host "La IP es valida" -ForegroundColor Green
@@ -118,7 +129,7 @@ if ($Feature.Installed) {
         }while(-not $valida)
 
         do{
-            $gateway = Read-Host "Ingrese el gateway del servicio: " 
+            $gateway = Read-Host "Ingrese el gateway del servicio " 
 
             if ($gateway -match $regex){
                 Write-Host "La IP es valida" -ForegroundColor Green
@@ -138,7 +149,7 @@ if ($Feature.Installed) {
         }while(-not $valida)
 
         do{
-            $dns = Read-Host "Ingrese el DNS del servicio: " 
+            $dns = Read-Host "Ingrese el DNS del servicio " 
 
             if ($dns -match $regex){
                 Write-Host "La IP es valida" -ForegroundColor Green
@@ -150,7 +161,7 @@ if ($Feature.Installed) {
         }while(-not $valida)
 
         do{
-            $nombre = Read-Host "Ingrese nombre para la red:  " 
+            $nombre = Read-Host "Ingrese nombre para la red " 
             
             if( -not [string]::IsNullOrEmpty($nombre)){
                 Write-Host "Dominio Valido" -ForegroundColor Green
@@ -161,20 +172,39 @@ if ($Feature.Installed) {
 
         }While($true)
 
+        do{
+            $tiempo = Read-Host "Cuanto tiempo de concesion quiere(minutos) " 
+            
+            if( -not [string]::IsNullOrEmpty($tiempo)){
+                if ($tiempo -match '^\d+$') {
+                    Write-Host "Numero Valido" -ForegroundColor Green
+                    Break
+                } else {
+                    Write-Host "Tiene que ser un numero entero" -ForegroundColor Red
+                }
+            }else{
+                Write-Host "El valor no puede ser vacio" -ForegroundColor Green
+            }
+
+        }While($true)
+
+        $concesion = formato-concesion -tiempo $tiempo
+
         Write-Host "Instalando el servicio de DHCP...."
         Install-WindowsFeature -Name DHCP -IncludeManagementTools
 
         Write-Host "Asignando las configuraciones del DHCP..."
         Add-DhcpServerv4Scope -Name $nombre -StartRange $iniciorango -EndRange $finalrango -State Active
         Set-DhcpServerv4OptionValue -ScopeId $segmento -Router $gateway -DnsServer $dns
+        Set-DhcpServerv4Scope -ScopeId $segmento -LeaseDuration $concesion
 
         Write-Host "Reiniciando el servicio de DHCP..."
-        Restart-Service -Name DHCP -Force
+        Restart-Service -Name DHCPServer -Force
 
     } else {
         Write-Host "La IP  ya es estática."
     }
 
     Write-Host "Verificando si esta corriendo..."
-    Get-Service -Name DHCP
+    Get-Service -Name DHCPServer
 }
