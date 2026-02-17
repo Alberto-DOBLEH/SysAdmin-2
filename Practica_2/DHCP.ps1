@@ -34,15 +34,9 @@ function formato-concesion {
     param (
         [int]$tiempo
     )
-    $horas = [math]::Floor($tiempo / 60)
-    $minutos = $tiempo % 60
-    $segundos = 0
 
-    $horasStr = $horas.ToString("D2")
-    $minutosStr = $minutos.ToString("D2")
-    $segundosStr = $segundos.ToString("D2")
-
-    return "$horasStr`:$minutosStr`:$segundosStr"
+    $ts = [TimeSpan]::FromMinutes($tiempo)
+    return "{0:D2}:{1:D2}:{2:D2}" -f $ts.TotalHours, $ts.Minutes, $ts.Seconds
 }
 
 #Variables de uso
