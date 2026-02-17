@@ -36,7 +36,12 @@ function formato-concesion {
     )
 
     $ts = [TimeSpan]::FromMinutes($tiempo)
-    return "{0:D2}:{1:D2}:{2:D2}" -f $ts.TotalHours, $ts.Minutes, $ts.Seconds
+
+    $horas = [int]$ts.TotalHours
+    $minutos = $ts.Minutes
+    $segundos = $ts.Seconds
+
+    return "{0:D2}:{1:D2}:{2:D2}" -f $horas, $minutos, $segundos
 }
 
 #Variables de uso
