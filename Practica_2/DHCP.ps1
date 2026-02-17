@@ -38,7 +38,11 @@ function formato-concesion {
     $minutos = $tiempo % 60
     $segundos = 0
 
-    return "$horas.ToString("D2")`:$minutos.ToString("D2")`:$segundos.ToString("D2")"
+    $horasStr = $horas.ToString("D2")
+    $minutosStr = $minutos.ToString("D2")
+    $segundosStr = $segundos.ToString("D2")
+
+    return "$horasStr`:$minutosStr`:$segundosStr"
 }
 
 #Variables de uso
