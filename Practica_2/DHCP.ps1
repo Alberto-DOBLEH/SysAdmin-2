@@ -38,7 +38,7 @@ function formato-concesion {
     $minutos = $tiempo % 60
     $segundos = 0
 
-    return "{0:D2}:{1:D2}:{2:D2}" -f $horas, $minutos, $segundos
+    return "$horas.ToString("D2")`:$minutos.ToString("D2")`:$segundos.ToString("D2")"
 }
 
 #Variables de uso
@@ -50,7 +50,7 @@ $gateway = ""
 $dns = ""
 $nombre = ""
 [int]$tiempo = 0
-$concesion = ""
+$concesion = "" 
 
 #Variables de filtro
 $FeatureName = "DHCP" #Nombre del servicio para el filtro
@@ -71,6 +71,8 @@ if ($Feature.Installed) {
     if ($adapter.Dhcp -eq "Enabled") {
         Write-Host "La IP es dinámica."
 
+        #Seccion de ingreso de datos
+        #La IP del servidor
         do{
             $ipserver = Read-Host "Ingrese la IP que quiere para el servidor " 
 
@@ -86,8 +88,9 @@ if ($Feature.Installed) {
         Write-Host "Asignando la IP estatica al Servidor ...."
         New-NetIPAddress -InterfaceAlias 'Ethernet 2' -IPAddress $ipserver -PrefixLength 24
 
-        $segmento = Obtener-Segmento -IPv4 $ipserver
+        $segmento = Obtener-Segmento -IPv4 $ipserver #Extraccion de segmento de red desde la funcion exlusiva para eso
 
+        #IP de inicio
         do{
             $iniciorango = Read-Host "Ingrese el inicio del rango " 
 
@@ -108,6 +111,7 @@ if ($Feature.Installed) {
             }
         }while(-not $valida)
 
+        #IP del final
         do{
             $finalrango = Read-Host "Ingrese el final del rango " 
 
@@ -128,6 +132,7 @@ if ($Feature.Installed) {
             }
         }while(-not $valida)
 
+        #Gateway
         do{
             $gateway = Read-Host "Ingrese el gateway del servicio " 
 
@@ -148,6 +153,7 @@ if ($Feature.Installed) {
             }
         }while(-not $valida)
 
+        #DNS
         do{
             $dns = Read-Host "Ingrese el DNS del servicio " 
 
@@ -160,6 +166,7 @@ if ($Feature.Installed) {
             }
         }while(-not $valida)
 
+        #Nombre del servicio
         do{
             $nombre = Read-Host "Ingrese nombre para la red " 
             
@@ -172,6 +179,7 @@ if ($Feature.Installed) {
 
         }While($true)
 
+        #Tiempo de concesiones
         do{
             $tiempo = Read-Host "Cuanto tiempo de concesion quiere(minutos) " 
             
