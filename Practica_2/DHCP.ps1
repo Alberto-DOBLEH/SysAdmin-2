@@ -93,128 +93,127 @@ if ($Feature.Installed) {
 
         $segmento = Obtener-Segmento -IPv4 $ipserver #Extraccion de segmento de red desde la funcion exlusiva para eso
 
-        #IP de inicio
-        do{
-            $iniciorango = Read-Host "Ingrese el inicio del rango " 
-
-            if ($iniciorango -match $regex){
-                Write-Host "La IP es valida" -ForegroundColor Green
-
-                $validacion = verificar-segmento -ip $iniciorango -seg $segmento
-
-                if($validacion -eq $true){
-                    $valida = $true
-                } else {
-                    Write-Host "La IP no es parte del segmento del servidor" -ForegroundColor Red
-                    $valida = $false
-                }
-            }else {
-                Write-Host "La IP es no es valida, favor de ingresar otra" -ForegroundColor Red
-                $valida = $false
-            }
-        }while(-not $valida)
-
-        #IP del final
-        do{
-            $finalrango = Read-Host "Ingrese el final del rango " 
-
-            if ($finalrango -match $regex){
-                Write-Host "La IP es valida" -ForegroundColor Green
-
-                $validacion = verificar-segmento -ip $finalrango -seg $segmento
-
-                if($validacion -eq $true){
-                    $valida = $true
-                } else {
-                    Write-Host "La IP no es parte del segmento del servidor" -ForegroundColor Red
-                    $valida = $false
-                }
-            }else {
-                Write-Host "La IP es no es valida, favor de ingresar otra" -ForegroundColor Red
-                $valida = $false
-            }
-        }while(-not $valida)
-
-        #Gateway
-        do{
-            $gateway = Read-Host "Ingrese el gateway del servicio " 
-
-            if ($gateway -match $regex){
-                Write-Host "La IP es valida" -ForegroundColor Green
-
-                $validacion = verificar-segmento -ip $gateway -seg $segmento
-
-                if($validacion -eq $true){
-                    $valida = $true
-                } else {
-                    Write-Host "La IP no es parte del segmento del servidor" -ForegroundColor Red
-                    $valida = $false
-                }
-            }else {
-                Write-Host "La IP es no es valida, favor de ingresar otra" -ForegroundColor Red
-                $valida = $false
-            }
-        }while(-not $valida)
-
-        #DNS
-        do{
-            $dns = Read-Host "Ingrese el DNS del servicio " 
-
-            if ($dns -match $regex){
-                Write-Host "La IP es valida" -ForegroundColor Green
-                $valida = $true
-            }else {
-                Write-Host "La IP es no es valida, favor de ingresar otra" -ForegroundColor Red
-                $valida = $false
-            }
-        }while(-not $valida)
-
-        #Nombre del servicio
-        do{
-            $nombre = Read-Host "Ingrese nombre para la red " 
-            
-            if( -not [string]::IsNullOrEmpty($nombre)){
-                Write-Host "Dominio Valido" -ForegroundColor Green
-                Break
-            }else{
-                Write-Host "El dominio no puede ser vacio" -ForegroundColor Green
-            }
-
-        }While($true)
-
-        #Tiempo de concesiones
-        do{
-            $tiempo = Read-Host "Cuanto tiempo de concesion quiere(minutos) " 
-            
-            if( -not [string]::IsNullOrEmpty($tiempo)){
-                if ($tiempo -match '^\d+$') {
-                    Write-Host "Numero Valido" -ForegroundColor Green
-                    Break
-                } else {
-                    Write-Host "Tiene que ser un numero entero" -ForegroundColor Red
-                }
-            }else{
-                Write-Host "El valor no puede ser vacio" -ForegroundColor Green
-            }
-
-        }While($true)
-
-        $concesion = formato-concesion -tiempo $tiempo
-
-        Write-Host "Instalando el servicio de DHCP...."
-        Install-WindowsFeature -Name DHCP -IncludeManagementTools
-
-        Write-Host "Asignando las configuraciones del DHCP..."
-        Add-DhcpServerv4Scope -Name $nombre -StartRange $iniciorango -EndRange $finalrango -State Active
-        Set-DhcpServerv4OptionValue -ScopeId $segmento -Router $gateway -DnsServer $dns
-        Set-DhcpServerv4Scope -ScopeId $segmento -LeaseDuration $concesion
-
-        Write-Host "Reiniciando el servicio de DHCP..."
-        Restart-Service -Name DHCPServer -Force
-
     } else {
         Write-Host "La IP  ya es estática."
     }
+
+    #IP de inicio
+    do{
+        $iniciorango = Read-Host "Ingrese el inicio del rango " 
+
+        if ($iniciorango -match $regex){
+            Write-Host "La IP es valida" -ForegroundColor Green
+
+            $validacion = verificar-segmento -ip $iniciorango -seg $segmento
+
+            if($validacion -eq $true){
+                $valida = $true
+            } else {
+                Write-Host "La IP no es parte del segmento del servidor" -ForegroundColor Red
+                $valida = $false
+            }
+        }else {
+            Write-Host "La IP es no es valida, favor de ingresar otra" -ForegroundColor Red
+            $valida = $false
+        }
+    }while(-not $valida)
+
+    #IP del final
+    do{
+        $finalrango = Read-Host "Ingrese el final del rango " 
+
+        if ($finalrango -match $regex){
+            Write-Host "La IP es valida" -ForegroundColor Green
+
+            $validacion = verificar-segmento -ip $finalrango -seg $segmento
+
+            if($validacion -eq $true){
+                $valida = $true
+            } else {
+                Write-Host "La IP no es parte del segmento del servidor" -ForegroundColor Red
+                $valida = $false
+            }
+        }else {
+            Write-Host "La IP es no es valida, favor de ingresar otra" -ForegroundColor Red
+            $valida = $false
+        }
+    }while(-not $valida)
+
+    #Gateway
+    do{
+        $gateway = Read-Host "Ingrese el gateway del servicio " 
+
+        if ($gateway -match $regex){
+            Write-Host "La IP es valida" -ForegroundColor Green
+
+            $validacion = verificar-segmento -ip $gateway -seg $segmento
+
+            if($validacion -eq $true){
+                $valida = $true
+            } else {
+                Write-Host "La IP no es parte del segmento del servidor" -ForegroundColor Red
+                $valida = $false
+            }
+        }else {
+            Write-Host "La IP es no es valida, favor de ingresar otra" -ForegroundColor Red
+            $valida = $false
+        }
+    }while(-not $valida)
+
+    #DNS
+    do{
+            $dns = Read-Host "Ingrese el DNS del servicio " 
+
+        if ($dns -match $regex){
+            Write-Host "La IP es valida" -ForegroundColor Green
+            $valida = $true
+        }else {
+            Write-Host "La IP es no es valida, favor de ingresar otra" -ForegroundColor Red
+            $valida = $false
+        }
+    }while(-not $valida)
+
+    #Nombre del servicio
+    do{
+        $nombre = Read-Host "Ingrese nombre para la red " 
+            
+        if( -not [string]::IsNullOrEmpty($nombre)){
+            Write-Host "Dominio Valido" -ForegroundColor Green
+            Break
+        }else{
+            Write-Host "El dominio no puede ser vacio" -ForegroundColor Green
+        }
+    }While($true)
+
+    #Tiempo de concesiones
+    do{
+        $tiempo = Read-Host "Cuanto tiempo de concesion quiere(minutos) " 
+            
+        if( -not [string]::IsNullOrEmpty($tiempo)){
+            if ($tiempo -match '^\d+$') {
+                Write-Host "Numero Valido" -ForegroundColor Green
+                Break
+            } else {
+                Write-Host "Tiene que ser un numero entero" -ForegroundColor Red
+            }
+        }else{
+            Write-Host "El valor no puede ser vacio" -ForegroundColor Green
+        }
+
+    }While($true)
+
+    $concesion = formato-concesion -tiempo $tiempo
+
+    Write-Host "Instalando el servicio de DHCP...."
+    Install-WindowsFeature -Name DHCP -IncludeManagementTools
+
+    Write-Host "Asignando las configuraciones del DHCP..."
+    Add-DhcpServerv4Scope -Name $nombre -StartRange $iniciorango -EndRange $finalrango -State Active
+    Set-DhcpServerv4OptionValue -ScopeId $segmento -Router $gateway -DnsServer $dns
+    Set-DhcpServerv4Scope -ScopeId $segmento -LeaseDuration $concesion
+
+    Write-Host "Reiniciando el servicio de DHCP..."
+    Restart-Service -Name DHCPServer -Force
 
     Write-Host "Verificando si esta corriendo..."
     Get-Service -Name DHCPServer
