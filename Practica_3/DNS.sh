@@ -7,11 +7,8 @@ MODULOS_PATH="$SCRIPT_DIR/../Modulos_Linux"
 source "$MODULOS_PATH/modulos_redes.sh"
 source "$MODULOS_PATH/generales.sh"
 
-if networkctl status enp0s8 | grep -q "DHCP4"; then
-    asignar_ip_estatica
-else
-    echo "IP estatica"
-fi
+asignar_ip_estatica
+
 
 servicio="bind9"
 validacion=$(verificar_servicio "$servicio")
