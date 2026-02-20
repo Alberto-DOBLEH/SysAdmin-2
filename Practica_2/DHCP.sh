@@ -3,7 +3,7 @@
 INTERFACE="enp0s8"
 CONFIG_FILE="/etc/dhcp/dhcpd.conf"
 LEASE_FILE="/var/lib/dhcp/dhcpd.leases"
-SUBNET="192.168.100.0"
+SUBNET="77.77.77.0"
 NETMASK="255.255.255.0"
 
 if ! dpkg -l | grep -q isc-dhcp-server; then
@@ -11,15 +11,15 @@ if ! dpkg -l | grep -q isc-dhcp-server; then
     apt install isc-dhcp-server -y
 fi
 
-ip addr show $INTERFACE | grep -q "192.168.100.1"
+ip addr show $INTERFACE | grep -q "77.77.77.1"
 if [ $? -ne 0 ]; then
     ip addr flush dev $INTERFACE
-    ip addr add 192.168.100.1/24 dev $INTERFACE
+    ip addr add 77.77.77.1/24 dev $INTERFACE
     ip link set $INTERFACE up
 fi
 
 valid_ip() {
-    [[ $1 =~ ^192\.168\.100\.([0-9]{1,3})$ ]] && [ ${BASH_REMATCH[1]} -ge 1 ] && [ ${BASH_REMATCH[1]} -le 254 ]
+    [[ $1 =~ ^77\.77\.77\.([0-9]{1,3})$ ]] && [ ${BASH_REMATCH[1]} -ge 1 ] && [ ${BASH_REMATCH[1]} -le 254 ]
 }
 
 read -p "Nombre del Ambito: " SCOPENAME
@@ -35,7 +35,7 @@ done
 read -p "Duracion del Lease en horas: " LEASEHOURS
 LEASESECONDS=$((LEASEHOURS*3600))
 
-GATEWAY="192.168.100.1"
+GATEWAY="77.77.77.1"
 
 cat > $CONFIG_FILE <<EOF
 default-lease-time $LEASESECONDS;
@@ -45,7 +45,7 @@ subnet $SUBNET netmask $NETMASK {
     range $START $END;
     option routers $GATEWAY;
     option subnet-mask $NETMASK;
-    option broadcast-address 192.168.100.255;
+    option broadcast-address 77.77.77.255;
 }
 EOF
 
