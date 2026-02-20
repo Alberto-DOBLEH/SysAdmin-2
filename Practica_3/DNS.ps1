@@ -22,7 +22,8 @@ do{
     #Variables de iteracion
     [string]$dominio
     [string]$ip
-
+    $iteracion = $true
+ 
     do{
         $dominio = Read-Host "Ingrese el dominio deseado en terminacion.com:"
             
@@ -55,7 +56,26 @@ do{
 
     Write-Host "Dominio configurado con exito"
 
-}while($true)
+    do{
+        $res = Read-Host "Quiere registrar otro dominio(S/N) "
+        $res = $res.toLower()
+
+        switch($res) {
+            "s" {
+                break
+            }
+            "n" {
+                $iteracion = $false
+                break
+            }
+            default {
+                Write-Host "Favor de ingresar una opcion valida" -ForegroundColor Red
+            }
+        }
+
+    }($true)
+    
+}while($iteracion -eq $true)
 
 Write-Host "Reiniciando el servicio de DNS"
 Restart-Service -Name DNS
