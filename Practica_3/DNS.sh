@@ -9,11 +9,9 @@ source "$MODULOS_PATH/generales.sh"
 
 asignar_ip_estatica
 
-
 servicio="bind9"
-validacion=$(verificar_servicio "$servicio")
 
-if [ "$validacion" = "true" ]; then
+if command -v "$servicio" &> /dev/null; then
     echo -e "\e[32mEl servicio DNS ya esta instalado\e[0m"
 else
     echo "Servicio DNS no esta instalado"
