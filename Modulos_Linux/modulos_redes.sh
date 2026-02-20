@@ -13,7 +13,7 @@ verificar_formato_ip() {
 
 asignar_ip_estatica() {
 
-    INTERFAZ="ens33"  # Cambia si es necesario
+    INTERFAZ="ensp0s8"  # Cambia si es necesario
 
     dhcp=$(nmcli -g ipv4.method connection show "$INTERFAZ" 2>/dev/null)
 
