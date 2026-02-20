@@ -13,27 +13,34 @@ verificar_formato_ip() {
 
 asignar_ip_estatica() {
 
-    INTERFAZ="ensp0s8"  # Cambia si es necesario
+    read -p "Ingrese la ip para el servidor: " ipserver
 
-    dhcp=$(nmcli -g ipv4.method connection show "$INTERFAZ" 2>/dev/null)
+    echo -e "${color}Empezando proceso de asignacion de ip estatica a la red local.....${reset}"
+    echo -e "${color}Generando copia de seguridad del archivo de configuracion de NetPlan....${reset}"
+    sudo cp /etc/netplan/50-cloud-init.yaml /etc/netplan/50-cloud-init.yaml.bak  # Copia de seguridad
 
-    if [ "$dhcp" = "auto" ]; then
-        echo -e "\e[33mLa IP es dinámica.\e[0m"
+    echo -e "${color}Empezando la insercion de nueva informacion al archivo..${reset}"
+    cat << EOF | sudo tee /etc/netplan/50-cloud-init.yaml
+network:
+  version: 2
+  ethernets:
+    enp0s3:
+      dhcp4: true
 
-        while true; do
-            read -p "Ingrese la IP que quiere para el servidor: " ipserver
-            if verificar_formato_ip "$ipserver"; then
-                echo -e "\e[32mLa IP es valida\e[0m"
-                break
-            else
-                echo -e "\e[31mIP no valida\e[0m"
-            fi
-        done
+    enp0s8:
+      dhcp4: false
+      addresses:
+        - ${ipserver}/24
+      gateway4: ${ipserver}
+      nameservers:
+        addresses:
+          - 8.8.8.8
+          - 8.8.4.4
+EOF
 
-        echo "Asignando IP estatica..."
-        sudo nmcli connection modify "$INTERFAZ" ipv4.addresses "$ipserver/24"
-        sudo nmcli connection modify "$INTERFAZ" ipv4.method manual
-        sudo nmcli connection up "$INTERFAZ"
+    # Aplicar cambios
+    echo -e "${color}Aplicando cambios en los adaptadores de red de la maquina....${reset}"
+    sudo netplan apply
 
     else
         echo "La IP ya es estatica."
