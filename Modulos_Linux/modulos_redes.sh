@@ -41,10 +41,6 @@ EOF
     # Aplicar cambios
     echo -e "${color}Aplicando cambios en los adaptadores de red de la maquina....${reset}"
     sudo netplan apply
-
-    else
-        echo "La IP ya es estatica."
-    fi
 }
 
 obtener_segmento() {
