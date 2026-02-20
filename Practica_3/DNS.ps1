@@ -16,48 +16,47 @@ if($validacion -eq $true) {
     Write-Host "Empezando proceso de instalacion.."
 
     Install-WindowsFeature -Name "DNS" -IncludeManagementTools
+}
+
+do{
+    #Variables de iteracion
+    [string]$dominio
+    [string]$ip
 
     do{
-        #Variables de iteracion
-        [string]$dominio
-        [string]$ip
-
-        do{
-            $dominio = Read-Host "Ingrese el dominio deseado en terminacion.com:"
+        $dominio = Read-Host "Ingrese el dominio deseado en terminacion.com:"
             
-            if([string]::IsNullOrEmpty($dominio)){
-                Write-Host "Dominio no puede ser vacio" -ForegroundColor Red
-            }elseif($dominio -match "\.com$"){
-                Write-Host "Dominio Valido" -ForegroundColor Green
-                Break
-            }else{
-                Write-Host "El dominio no puede ser vacio" -ForegroundColor Green
-            }
-        }while($true)
-
-        do{
-            $ip = Read-Host"Ingrese la direccion IP que se va apuntar:"
-            $validacion = verificar-formato-ip -IP $ip
-            if($validacion) {
-                Break
-            }
-        }while($true)
-
-        #Creacion de la primary zone
-        Add-DnsServerPrimaryZone -Name $dominio -ZoneFile "$dominio.dns" -DynamicUpdate NonsecureAndSecure
-        Write-Host "Se registro la Primary Zone del dominio: $dominio" -ForegroundColor Green
-
-        #Creacion de registros
-        Add-DnsServerResourceRecordA -Name "@" -ZoneName $dominio -IPv4Address $ip
-        Add-DnsServerResourceRecordA -Name "www" -ZoneName $dominio -IPv4Address $ip
-        Write-Host "Se generaron los registros" -ForegroundColor Green
-
-        Write-Host "Dominio configurado con exito"
-
+        if([string]::IsNullOrEmpty($dominio)){
+            Write-Host "Dominio no puede ser vacio" -ForegroundColor Red
+        }elseif($dominio -match "\.com$"){
+            Write-Host "Dominio Valido" -ForegroundColor Green
+            Break
+        }else{
+            Write-Host "El dominio no puede ser vacio" -ForegroundColor Green
+        }
     }while($true)
 
-    Write-Host "Reiniciando el servicio de DNS"
-    Restart-Service -Name DNS
-    Write-Host "Servicio reestablecido"
+    do{
+        $ip = Read-Host "Ingrese la direccion IP que se va apuntar:"
+        $validacion = verificar-formato-ip -IP $ip
+        if($validacion) {
+            Break
+        }
+    }while($true)
 
-}
+    #Creacion de la primary zone
+    Add-DnsServerPrimaryZone -Name $dominio -ZoneFile "$dominio.dns" -DynamicUpdate NonsecureAndSecure
+    Write-Host "Se registro la Primary Zone del dominio: $dominio" -ForegroundColor Green
+
+    #Creacion de registros
+    Add-DnsServerResourceRecordA -Name "@" -ZoneName $dominio -IPv4Address $ip
+    Add-DnsServerResourceRecordA -Name "www" -ZoneName $dominio -IPv4Address $ip
+    Write-Host "Se generaron los registros" -ForegroundColor Green
+
+    Write-Host "Dominio configurado con exito"
+
+}while($true)
+
+Write-Host "Reiniciando el servicio de DNS"
+Restart-Service -Name DNS
+Write-Host "Servicio reestablecido"
