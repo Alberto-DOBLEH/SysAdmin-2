@@ -2,34 +2,29 @@
 
 asignar_ip_estatica() {
 
-    INTERFAZ="enp0s8"
     IP="$1"
-    CIDR="$2"
+echo -e "Empezando la insercion de nueva informacion al archivo.."
+cat << EOF | sudo tee /etc/netplan/50-cloud-init.yaml
+network:
+  version: 2
+  ethernets:
+    enp0s3:
+      dhcp4: true
 
-    # Validar que la interfaz exista
-    if ! ip link show "$INTERFAZ" &> /dev/null; then
-        echo "La interfaz $INTERFAZ no existe."
-        return 1
-    fi
+    enp0s8:
+      dhcp4: false
+      addresses:
+        - ${IP}/24
+      gateway4: ${IP}
+      nameservers:
+        addresses:
+          - 8.8.8.8
+          - 8.8.4.4
+EOF
 
-    # Validar formato de IP
-    regex_ip='^((25[0-5]|2[0-4][0-9]|1?[0-9]?[0-9])\.){3}(25[0-5]|2[0-4][0-9]|1?[0-9]?[0-9])$'
-    if [[ ! $IP =~ $regex_ip ]]; then
-        echo "Formato de IP inválido."
-        return 1
-    fi
-
-    # Validar CIDR (0-32)
-    if ! [[ "$CIDR" =~ ^([0-9]|[1-2][0-9]|3[0-2])$ ]]; then
-        echo "CIDR inválido (debe ser entre 0 y 32)."
-        return 1
-    fi
-
-    echo "Configurando IP estática $IP/$CIDR en $INTERFAZ..."
-
-    ip addr flush dev "$INTERFAZ"
-    ip addr add "$IP/$CIDR" dev "$INTERFAZ"
-    ip link set "$INTERFAZ" up
+    # Aplicar cambios
+    echo -e "Aplicando cambios en los adaptadores de red de la maquina...."
+    sudo netplan apply
 
     echo "Configuración aplicada correctamente."
 }
