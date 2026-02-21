@@ -10,12 +10,17 @@ network:
   ethernets:
     enp0s3:
       dhcp4: true
+      dhcp4-overrides:
+        route-metric: 100
 
     enp0s8:
       dhcp4: false
       addresses:
         - $1/24
-      gateway4: $1
+      routes:
+        - to: default
+          via: $1
+          metric: 200
       nameservers:
         addresses:
           - 8.8.8.8
