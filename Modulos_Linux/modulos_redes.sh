@@ -14,8 +14,8 @@ network:
     enp0s8:
       dhcp4: false
       addresses:
-        - ${IP}/24
-      gateway4: ${IP}
+        - $1/24
+      gateway4: $1
       nameservers:
         addresses:
           - 8.8.8.8
