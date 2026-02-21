@@ -1,11 +1,11 @@
 #!/bin/bash
 
-verificar_servicio() {
-    servicio=$1
-
-    if dpkg -l | grep -q "$servicio"; then
-        echo "true"
+verificar_servicio () {
+    if ! dpkg -s "$1" &> /dev/null; then
+        echo "Instalando $1..."
+        apt update -y
+        apt install -y "$1" "$2" "$3"
     else
-        echo "false"
+        echo "$1 ya está instalado."
     fi
 }

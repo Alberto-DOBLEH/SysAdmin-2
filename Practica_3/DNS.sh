@@ -1,94 +1,95 @@
 #!/bin/bash
+source ../Modulos_Linux/generales.sh
+source ../Modulos_Linux/modulos_redes.sh
 
-# ===== Importacion de modulos =====
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-MODULOS_PATH="$SCRIPT_DIR/../Modulos_Linux"
 
-source "$MODULOS_PATH/modulos_redes.sh"
-source "$MODULOS_PATH/generales.sh"
+ip=""
+read -p "Introduzca la direcion IP: " ip
+asignar_ip_estatica "ip" 24
 
-asignar_ip_estatica
+verificar_servicio bind9 bind9utils bind9-doc
 
-servicio="bind9"
+echo "Creando carpeta de zonas..."
+sudo mkdir -p /etc/bind/zones
+sudo chown bind:bind /etc/bind/zones
 
-if command -v "$servicio" &> /dev/null; then
-    echo -e "\e[32mEl servicio DNS ya esta instalado\e[0m"
-else
-    echo "Servicio DNS no esta instalado"
-    echo "Empezando proceso de instalacion.."
-    sudo apt update
-    sudo apt install -y bind9 bind9utils bind9-doc
-fi
+while true; do
 
-iteracion=true
-
-while [ "$iteracion" = true ]; do
-
-    # ===== Dominio =====
+    # Dominio
     while true; do
-        read -p "Ingrese el dominio deseado en terminacion.com: " dominio
-
-        if [[ -z "$dominio" ]]; then
-            echo -e "\e[31mDominio no puede ser vacio\e[0m"
-        elif [[ "$dominio" =~ \.com$ ]]; then
-            echo -e "\e[32mDominio Valido\e[0m"
+        read -p "Introduzca el dominio: " dominio
+        if [[ -n "$dominio" ]]; then
+            echo "Dominio Valido"
             break
-        else
-            echo -e "\e[31mDominio invalido, debe terminar en .com\e[0m"
         fi
+        echo "El dominio no puede estar vacio"
     done
 
-    # ===== IP =====
-    while true; do
-        read -p "Ingrese la direccion IP que se va apuntar: " ip
-        if verificar_formato_ip "$ip"; then
-            break
-        else
-            echo -e "\e[31mIP no valida\e[0m"
-        fi
-    done
+    # IP
+    read -p "Introduzca la direccion IP: " ip
 
-    # ===== Crear zona =====
-    ZONE_FILE="/etc/bind/db.$dominio"
+    nombrearchzona="db.${dominio}"
+    ruta="/etc/bind/zones/${nombrearchzona}"
 
-    sudo bash -c "cat > $ZONE_FILE" <<EOF
-\$TTL 604800
-@   IN  SOA ns.$dominio. admin.$dominio. (
-        2
-        604800
-        86400
-        2419200
-        604800 )
-@       IN  NS      ns.$dominio.
-@       IN  A       $ip
-www     IN  A       $ip
-ns      IN  A       $ip
+    echo "Generando la zona del dominio...."
+
+    sudo tee "${ruta}" > /dev/null << EOF
+\$TTL 86400
+@   IN  SOA ns1.${dominio}. admin.${dominio}. (
+        $(date +%Y%m%d)01 ; Serial
+        28800       ; Refresh
+        7200        ; Retry
+        864000      ; Expire
+        86400 )     ; Minimum TTL
+;
+    IN  NS  ns1.${dominio}.
+ns1 IN  A   ${ip}
+@   IN  A   ${ip}
+www IN  A   ${ip}
 EOF
 
-    sudo bash -c "echo 'zone \"$dominio\" { type master; file \"$ZONE_FILE\"; };' >> /etc/bind/named.conf.local"
+    sudo chown bind:bind "${ruta}"
 
-    echo -e "\e[32mSe registro la Primary Zone del dominio: $dominio\e[0m"
-    echo -e "\e[32mSe generaron los registros\e[0m"
-    echo "Dominio configurado con exito"
+    echo "Configurando la zona en named.conf.local..."
 
+    ZoneConfig="/etc/bind/named.conf.local"
+
+    # Evitar duplicados
+    if ! grep -q "zone \"${dominio}\"" "$ZoneConfig"; then
+        echo "zone \"${dominio}\" {
+    type master;
+    file \"${ruta}\";
+};" | sudo tee -a "$ZoneConfig" > /dev/null
+    else
+        echo "La zona ya existe en named.conf.local"
+    fi
+
+    echo "Verificacion final..."
+    sudo named-checkconf
+
+    if [ $? -eq 0 ]; then
+        echo "Configuracion valida"
+    else
+        echo "Error en la configuracion"
+    fi
+
+    # Preguntar si quiere agregar otro dominio
     while true; do
-        read -p "Quiere registrar otro dominio (S/N): " res
-        res=$(echo "$res" | tr '[:upper:]' '[:lower:]')
+        read -p "¿Desea agregar otro dominio? (S/N): " respuesta
+        respuesta=$(echo "$respuesta" | tr '[:upper:]' '[:lower:]')
 
-        case $res in
+        case $respuesta in
             s) break ;;
             n)
-                iteracion=false
-                break
+                echo "Reiniciando servicio bind9..."
+                sudo systemctl restart bind9
+                echo "Proceso finalizado."
+                exit 0
                 ;;
             *)
-                echo -e "\e[31mFavor de ingresar una opcion valida\e[0m"
+                echo "Opcion invalida"
                 ;;
         esac
     done
 
 done
-
-echo "Reiniciando el servicio DNS"
-sudo systemctl restart bind9
-echo "Servicio reestablecido"
