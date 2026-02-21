@@ -5,7 +5,7 @@ source ../Modulos_Linux/modulos_redes.sh
 
 ip=""
 read -p "Introduzca la direcion IP: " ip
-asignar_ip_estatica "ip" 24
+asignar_ip_estatica "$ip" 24
 
 verificar_servicio bind9 bind9utils bind9-doc
 
