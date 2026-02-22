@@ -217,4 +217,9 @@ if ($Feature.Installed) {
 
     Write-Host "Verificando si esta corriendo..."
     Get-Service -Name DHCPServer
+
+    Start-Sleep -Seconds 30
+
+    #Obtener los leases
+    Get-DhcpServerv4Lease -ScopeId $segmento
 }
