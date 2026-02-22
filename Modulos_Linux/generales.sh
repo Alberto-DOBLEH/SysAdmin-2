@@ -1,11 +1,13 @@
 #!/bin/bash
 
 verificar_servicio () {
-    if ! dpkg -s "$1" &> /dev/null; then
-        echo "Instalando $1..."
-        apt update -y
-        apt install -y "$1" "$2" "$3"
-    else
-        echo "$1 ya está instalado."
-    fi
+    for paquete in "$@"; do
+        if ! dpkg -s "$paquete" &> /dev/null; then
+            echo "Instalando $paquete..."
+            apt update -y
+            apt install -y "$paquete"
+        else
+            echo "$paquete ya está instalado."
+        fi
+    done
 }
