@@ -40,7 +40,6 @@ function asignar-ip-estatica {
     }
 }
 
-
 function Obtener-Segmento {
     param (
         [string]$IPv4
