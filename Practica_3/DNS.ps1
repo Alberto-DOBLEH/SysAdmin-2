@@ -72,7 +72,7 @@ do{
                 Write-Host "Favor de ingresar una opcion valida" -ForegroundColor Red
             }
         }
-    }($true)
+    }while($true)
     
 }while($iteracion -eq $true)
 
