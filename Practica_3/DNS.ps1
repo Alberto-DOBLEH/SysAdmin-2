@@ -61,11 +61,11 @@ do{
 
         switch($res) {
             "S" {
-                break
+                Break
             }
             "N" {
                 $iteracion = $false
-                break
+                Break
             }
             default {
                 Write-Host "Favor de ingresar una opcion valida" -ForegroundColor Red
