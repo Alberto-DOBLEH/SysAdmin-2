@@ -58,13 +58,12 @@ do{
 
     do{
         $res = Read-Host "Quiere registrar otro dominio(S/N) "
-        $res = $res.toLower()
 
         switch($res) {
-            "s" {
+            "S" {
                 break
             }
-            "n" {
+            "N" {
                 $iteracion = $false
                 break
             }
