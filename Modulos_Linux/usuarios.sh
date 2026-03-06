@@ -126,7 +126,6 @@ crear_usuario() {
     # Establecer propietario y permisos en el directorio home y subdirectorios
     sudo chown -R "$username":"$username" "$carpeta_personal_usuario"
     sudo chmod 700 "$carpeta_personal_usuario"
-    sudo chmod 700 /srv/ftp/LocalUser/Public
 
     echo "Usuario FTP '$username' creado y configurado exitosamente con acceso a:"
     echo " - Carpeta Public (compartida)"
