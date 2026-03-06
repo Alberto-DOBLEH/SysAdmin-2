@@ -127,7 +127,7 @@ EOF
     echo "Configurando acceso anónimo a la carpeta '$carpeta_publica'..."
 
     # Permisos de solo lectura para usuarios anónimos
-    sudo chmod 0555 "$carpeta_publica"
+    sudo chmod 1777 "$carpeta_publica"
     echo "Permisos de lectura configurados en '$carpeta_publica'."
 
     # Habilitar acceso anónimo en vsftpd.conf (si se encuentra comentado)
