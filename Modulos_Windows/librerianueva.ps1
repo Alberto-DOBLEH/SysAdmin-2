@@ -801,6 +801,22 @@ function instalar_apache {
 
     # Definir ruta de descarga con la versión seleccionada
     $url = "https://www.apachelounge.com/download/VS17/binaries/httpd-$global:version-250207-win64-VS17.zip"
+
+    $response = Invoke-WebRequest -Uri "https://www.apachelounge.com/download/" -Headers @{ "User-Agent" = "Mozilla/5.0" }
+
+    $url = ($response.Links | Where-Object {
+        $_.href -match "httpd-$global:version-.*-win64-VS17\.zip"
+    } | Select-Object -First 1).href
+
+    if ($url -notmatch "^http") {
+        $url = "https://www.apachelounge.com/$url"
+    }
+
+    if (-not $url) {
+        Write-Host "No se pudo obtener la URL de Apache"
+        return
+    }
+
     $destinoZip = "$env:USERPROFILE\Downloads\apache-$global:version.zip"
     $extraerdestino = "C:\Apache24"
 
@@ -816,7 +832,7 @@ function instalar_apache {
         $headers = @{
             "User-Agent" = "Mozilla/5.0"
         }
-        Invoke-WebRequest -Uri $url -OutFile $destinoZip
+        Invoke-WebRequest -Uri $url -OutFile $destinoZip -Headers @{ "User-Agent" = "Mozilla/5.0" }
         Write-Host "Apache descargado en: $destinoZip"
 
         # Extraer Apache en C:\Apache24
