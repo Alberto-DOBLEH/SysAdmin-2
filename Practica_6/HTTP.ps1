@@ -16,8 +16,7 @@ function Mostrar-Menu {
     Write-Host "2. Seleccionar Versión"
     Write-Host "3. Configurar Puerto"
     Write-Host "4. Proceder con la Instalación"
-    Write-Host "5. Verificar servicios instalados"
-    Write-Host "6. Salir"
+    Write-Host "5. Salir"
     Write-Host "=================================="
 }
 
