@@ -675,7 +675,14 @@ function instalar_dependencias {
         $jdkUrl = "https://corretto.aws/downloads/latest/amazon-corretto-21-x64-windows-jdk.zip"
         $jdkZipPath = "$env:TEMP\Corretto21.zip"
 
-        Invoke-WebRequest -Uri $jdkUrl -OutFile $jdkZipPath
+        if (Test-Path $jdkZipPath) {
+            Remove-Item $jdkZipPath -Force
+        }
+        $headers = @{
+            "User-Agent" = "Mozilla/5.0"
+        }
+
+        Invoke-WebRequest -Uri $jdkUrl -OutFile $jdkZipPath -Headers $headers
 
         # Crear directorio de instalación si no existe
         if (-Not (Test-Path $jdkBasePath)) {
