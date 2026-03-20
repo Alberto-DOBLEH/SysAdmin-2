@@ -804,7 +804,7 @@ function instalar_apache {
 
     $html = $response.Content
 
-    $url = [regex]::Match($html, "httpd-$global:version-[^`"']+-win64-VS17\.zip").Value
+    $url = [regex]::Match($html, "httpd-2\.4\.\d+-\d+-win64-VS17\.zip").Value
 
     if ($url -and $url -notmatch "^http") {
         $url = "https://www.apachelounge.com/download/VS17/binaries/$url"
