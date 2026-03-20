@@ -807,10 +807,16 @@ function instalar_apache {
     try {
         Write-Host "Iniciando instalación de Apache HTTP Server versión $global:version..."
 
+        if (Test-Path $destinoZip) {
+            Remove-Item $destinoZip -Force
+        }
+
         # Descargar Apache
         Write-Host "Descargando Apache desde: $url"
-        $agente = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
-        Invoke-WebRequest -Uri $url -OutFile $destinoZip -MaximumRedirection 10 -UserAgent $agente -UseBasicParsing
+        $headers = @{
+            "User-Agent" = "Mozilla/5.0"
+        }
+        Invoke-WebRequest -Uri $url -OutFile $destinoZip -MaximumRedirection 10 -Headers $headers -UseBasicParsing
         Write-Host "Apache descargado en: $destinoZip"
 
         # Extraer Apache en C:\Apache24
