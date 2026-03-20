@@ -800,21 +800,22 @@ function instalar_apache {
     }
 
     # Definir ruta de descarga con la versión seleccionada
-
     $response = Invoke-WebRequest -Uri "https://www.apachelounge.com/download/" -Headers @{ "User-Agent" = "Mozilla/5.0" }
 
-    $url = ($response.Links | Where-Object {
-        $_.href -match "httpd-$global:version-.*-win64-VS17\.zip"
-    } | Select-Object -First 1).href
+    $html = $response.Content
 
-    if ($url -notmatch "^http") {
-        $url = "https://www.apachelounge.com/$url"
+    $url = [regex]::Match($html, "httpd-$global:version-[^`"']+-win64-VS17\.zip").Value
+
+    if ($url -and $url -notmatch "^http") {
+        $url = "https://www.apachelounge.com/download/VS17/binaries/$url"
     }
 
     if (-not $url) {
-        Write-Host "No se pudo obtener la URL de Apache"
+        Write-Host "No se encontró URL para Apache $global:version"
         return
     }
+
+    Write-Host "URL encontrada: $url"
 
     $destinoZip = "$env:USERPROFILE\Downloads\apache-$global:version.zip"
     $extraerdestino = "C:\Apache24"
