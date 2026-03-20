@@ -800,7 +800,6 @@ function instalar_apache {
     }
 
     # Definir ruta de descarga con la versión seleccionada
-    $url = "https://www.apachelounge.com/download/VS17/binaries/httpd-$global:version-250207-win64-VS17.zip"
 
     $response = Invoke-WebRequest -Uri "https://www.apachelounge.com/download/" -Headers @{ "User-Agent" = "Mozilla/5.0" }
 
