@@ -816,7 +816,7 @@ function instalar_apache {
         $headers = @{
             "User-Agent" = "Mozilla/5.0"
         }
-        Start-BitsTransfer -Source $jdkUrl -Destination $jdkZipPath
+        Start-BitsTransfer -Source $url -Destination $destinoZip
         Write-Host "Apache descargado en: $destinoZip"
 
         # Extraer Apache en C:\Apache24
