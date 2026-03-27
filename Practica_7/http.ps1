@@ -674,45 +674,98 @@ elseif($opcDescarga.ToLower() -eq "web"){
 
     switch($opc){
         "1"{
-            if(-not(Get-WindowsFeature -Name Web-Server).Installed){
-                $puerto = Read-Host "Ingresa el puerto donde se realizara la instalacion"
-                if(-not(Es-Numerico -string $puerto)){
-                    echo "Ingresa un valor numerico entero"
-                }
-                elseif(-not(Es-RangoValido $puerto)){
-                    echo "Ingresa un puerto dentro del rango (0-65535)"
-                }
-                elseif(Es-PuertoEnUso $puerto){
-                    echo "El puerto se encuentra en uso"
-                }
-                elseif(-not(Es-PuertoValido $puerto)){
-                    echo "Error el puerto no es valido"
-                }
-                else{
-                    Install-WindowsFeature Web-Server -IncludeAllSubFeature
-                    $opc = Read-Host "Quieres habilitar SSL? (si/no)"
-                    if($opc.ToLower() -eq "si"){
-                        Import-Module WebAdministration
-                        $thumbprint = "96D9BFD93676F3BC2E9F54D9138C4C92801EB6DD"
-                        $cert = Get-ChildItem -Path Cert:\LocalMachine\My | Where-Object { $_.Thumbprint -eq $thumbprint }
-                        New-WebBinding -Name "Default Web Site" -IP "*" -Port $puerto -Protocol https
-                        $cert | New-Item -path IIS:\SslBindings\0.0.0.0!$puerto
-                        netsh advfirewall firewall add rule name="IIS" dir=in action=allow protocol=TCP localport=$puerto
-                        echo "IIS Se ha instalado correctamente"
+            if (-not (Get-WindowsFeature -Name Web-Server).Installed) {
+
+            $puerto = Read-Host "Ingresa el puerto"
+
+            if (-not (Es-Numerico $puerto)) {
+                echo " Ingresa un valor numerico"
+                return
+            }
+
+            if (-not (Es-RangoValido $puerto)) {
+                echo " Puerto fuera de rango (1-65535)"
+                return
+            }
+
+            if (Es-PuertoEnUso $puerto) {
+                echo " El puerto ya esta en uso"
+                return
+            }
+
+            # Instalar IIS
+            Install-WindowsFeature Web-Server -IncludeManagementTools
+
+            # Limpiar bindings anteriores
+            Get-WebBinding -Name "Default Web Site" -ErrorAction SilentlyContinue | Remove-WebBinding
+
+            $opc = Read-Host "Quieres habilitar SSL? (si/no)"
+
+            switch ($opc.ToLower()) {
+
+                "si" {
+
+                    $pfxPath = Read-Host "Ruta del archivo .pfx"
+                    $pass = Read-Host "Password del certificado" -AsSecureString
+
+                    if (-not (Test-Path $pfxPath)) {
+                        echo " Archivo no encontrado"
+                        return
                     }
-                    elseif($opc.ToLower() -eq "no"){
-                        Set-WebBinding -Name "Default Web Site" -BindingInformation "*:80:" -PropertyName "bindingInformation" -Value ("*:" + $puerto + ":")
-                        netsh advfirewall firewall add rule name="IIS" dir=in action=allow protocol=TCP localport=$puerto
+
+                    try {
+                        # Importar certificado
+                        $cert = Import-PfxCertificate -FilePath $pfxPath `
+                            -CertStoreLocation Cert:\LocalMachine\My `
+                            -Password $pass
+
+                        if ($cert -eq $null) {
+                            echo " Error al importar certificado"
+                            return
+                        }
+
+                        # Crear binding HTTPS
+                        New-WebBinding -Name "Default Web Site" -Protocol https -Port $puerto -IPAddress "*"
+
+                        # Asignar certificado
+                        New-Item "IIS:\SslBindings\0.0.0.0!$puerto" -Value $cert -Force
+
+                        # Firewall
+                        netsh advfirewall firewall add rule name="IIS_HTTPS_$puerto" dir=in action=allow protocol=TCP localport=$puerto
+
                         iisreset
-                        echo "IIS Se ha instalado correctamente"
+                        echo " IIS con HTTPS funcionando en puerto $puerto"
                     }
-                    else{
-                        echo "Selecciona una opcion valida (si/no)"
+                    catch {
+                        echo " Error en configuracion SSL"
                     }
+                }
+
+                "no" {
+
+                    try {
+                        # Crear binding HTTP
+                        New-WebBinding -Name "Default Web Site" -Protocol http -Port $puerto -IPAddress "*"
+
+                        # Firewall
+                        netsh advfirewall firewall add rule name="IIS_HTTP_$puerto" dir=in action=allow protocol=TCP localport=$puerto
+
+                        iisreset
+                        echo " IIS con HTTP funcionando en puerto $puerto"
+                    }
+                    catch {
+                        echo " Error configurando HTTP"
+                    }
+                }
+
+                default {
+                    echo " Opcion invalida (si/no)"
                 }
             }
-            else{
-                echo "IIS ya se encuentra instalado"
+
+            }
+            else {
+                echo " IIS ya se encuentra instalado"
             }
         }
         "2"{
