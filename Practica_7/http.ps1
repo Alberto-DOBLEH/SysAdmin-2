@@ -689,7 +689,7 @@ elseif($opcDescarga.ToLower() -eq "web"){
                     echo "Error el puerto no es valido"
                 }
                 else{
-                    Install-WindowsFeature -Name Web-Server -IncludeManagementTools
+                    Install-WindowsFeature Web-Server -IncludeAllSubFeature
                     $opc = Read-Host "Quieres habilitar SSL? (si/no)"
                     if($opc.ToLower() -eq "si"){
                         Import-Module WebAdministration
