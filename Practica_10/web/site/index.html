@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Practica 10 - Infraestructura en Contenedores</title>
+  <link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+  <main class="shell">
+    <section class="hero">
+      <div>
+        <p class="eyebrow">SysAdmin-2</p>
+        <h1>Servicios esenciales migrados a contenedores personalizados</h1>
+        <p class="summary">Servidor web, PostgreSQL y FTP conviven en una red bridge dedicada con almacenamiento persistente y limites de recursos.</p>
+      </div>
+      <img src="assets/infra.svg" alt="Diagrama de infraestructura en contenedores">
+    </section>
+
+    <section class="cards">
+      <article>
+        <h2>Web seguro</h2>
+        <p>Imagen Alpine personalizada, sin server tokens y ejecutando Nginx con usuario no administrativo.</p>
+      </article>
+      <article>
+        <h2>Datos persistentes</h2>
+        <p>PostgreSQL usa el volumen <strong>db_data</strong> y genera respaldos automatizados en el host.</p>
+      </article>
+      <article>
+        <h2>Archivos por FTP</h2>
+        <p>El volumen <strong>web_content</strong> se comparte con FTP para publicar archivos cargados en <code>/uploads</code>.</p>
+      </article>
+    </section>
+
+    <section class="uploads">
+      <h2>Archivos cargados por FTP</h2>
+      <p>Suba archivos al directorio <code>uploads</code> por FTP y luego consultelos en <a href="/uploads/">/uploads/</a>.</p>
+    </section>
+  </main>
+</body>
+</html>

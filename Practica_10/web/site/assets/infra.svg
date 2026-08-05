@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 620 420" role="img">
+  <defs>
+    <linearGradient id="g" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#22d3ee"/>
+      <stop offset="1" stop-color="#2563eb"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="16" stdDeviation="18" flood-color="#020617" flood-opacity="0.5"/>
+    </filter>
+  </defs>
+  <rect width="620" height="420" rx="34" fill="#0f172a"/>
+  <path d="M85 92h450v235H85z" rx="24" fill="#111c31" stroke="#334155" stroke-width="3"/>
+  <path d="M140 300h340" stroke="#38bdf8" stroke-width="8" stroke-linecap="round" opacity="0.4"/>
+  <g filter="url(#shadow)">
+    <rect x="95" y="135" width="132" height="98" rx="18" fill="url(#g)"/>
+    <rect x="244" y="92" width="132" height="98" rx="18" fill="#14b8a6"/>
+    <rect x="393" y="135" width="132" height="98" rx="18" fill="#6366f1"/>
+  </g>
+  <g fill="#e0f2fe" font-family="Arial, sans-serif" font-size="25" font-weight="700">
+    <text x="135" y="190">WEB</text>
+    <text x="282" y="147">DB</text>
+    <text x="433" y="190">FTP</text>
+  </g>
+  <g stroke="#e2e8f0" stroke-width="5" stroke-linecap="round" opacity="0.78">
+    <path d="M227 184h48"/>
+    <path d="M376 184h48"/>
+    <path d="M310 190v76"/>
+  </g>
+  <rect x="210" y="266" width="200" height="52" rx="16" fill="#1e293b" stroke="#67e8f9" stroke-width="3"/>
+  <text x="241" y="300" fill="#e2e8f0" font-family="Arial, sans-serif" font-size="22" font-weight="700">infra_red</text>
+</svg>

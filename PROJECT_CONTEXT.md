@@ -113,6 +113,7 @@ Current good examples: several Windows scripts already use `$PSScriptRoot` and `
 README.md
 PROJECT_CONTEXT.md
 Modulos_Linux/
+  contenedores.sh
   generales.sh
   librerianueva.sh
   modulos_redes.sh
@@ -150,6 +151,17 @@ Practica_7/
   http.ps1
   funciones_http.sh
   usuarios_ftp.sh
+Practica_10/
+  main.sh
+  VALIDACION.md
+  web/
+    Dockerfile
+    nginx.conf
+    site/
+  ftp/
+    Dockerfile
+    vsftpd.conf
+    entrypoint.sh
 ```
 
 ## Module Inventory
@@ -158,6 +170,7 @@ Practica_7/
 
 | Module | Current Purpose | Notes / Risks |
 | --- | --- | --- |
+| `Modulos_Linux/contenedores.sh` | Practice 10 helper module for Docker installation, Docker network/volume creation, image builds, container recreation, PostgreSQL readiness checks, web volume seeding, and automated PostgreSQL backup timer setup. | Added for Linux-only container practice. Uses Docker CLI and systemd. VM execution pending user confirmation. |
 | `Modulos_Linux/generales.sh` | Provides `verificar_servicio` to install apt packages if missing. | Uses `apt update -y` and `apt install -y`. Output is not very quiet. |
 | `Modulos_Linux/modulos_redes.sh` | Provides `asignar_ip_estatica`. | Currently assumes `enp0s3` for internet and `enp0s8` for internal adapter, rewrites `/etc/netplan/50-cloud-init.yaml`, and sets a default route through the internal IP. Needs review before reuse. Fixed names are acceptable only after user confirms them. |
 | `Modulos_Linux/validadores.sh` | IPv4, subnet mask, network/broadcast, text, password, username validations. | Uses some shell utilities like `awk`. Generally reusable. |
@@ -187,6 +200,23 @@ This log records what exists now, not necessarily what has been verified as work
 | Practice 5 | `Practica_5/FTP.sh` | `Practica_5/FTP.ps1` | Existing, needs review before reuse. | FTP setup and user management exist. Some logic duplicated outside modules. |
 | Practice 6 | `Practica_6/HTTP.sh` | `Practica_6/HTTP.ps1` | Existing, needs path improvements on Linux. | Linux uses fragile `source ../Modulos_Linux/librerianueva.sh`; Windows uses `$PSScriptRoot`. |
 | Practice 7 | `Practica_7/main.sh` plus service scripts | `Practica_7/ftp.ps1`, `Practica_7/http.ps1` | Existing, needs review/fixes before reuse. | `main.sh` calls `instalar_dependencias` before declaring it, which will fail in Bash. Some internal script loading uses `dirname "$0"`, which is better. |
+| Practice 10 | `Practica_10/main.sh` | Not applicable | Implemented locally, VM validation pending. | Linux-only. Deploys Docker containers for custom Alpine Nginx web, PostgreSQL, and FTP on bridge network `infra_red` (`172.20.0.0/16`) with volumes `db_data` and `web_content`, resource limits, and automated PostgreSQL backups to `/opt/sysadmin10/backups`. |
+
+## Practice 10 Implementation Notes
+
+- Target system: Ubuntu Server only.
+- Main script: `Practica_10/main.sh`.
+- New module: `Modulos_Linux/contenedores.sh`.
+- Web image: custom `sysadmin10-web:1.0`, based on `alpine:3.20`, installs Nginx, disables `server_tokens`, listens on port `8080`, and runs as non-root user `webuser` UID `1000`.
+- Web content: custom static HTML/CSS/SVG under `Practica_10/web/site`; seeded into Docker volume `web_content`.
+- Database: `postgres:16-alpine`, container `sysadmin10_postgres`, persistent volume `db_data`, database `usuarios`, user `admin`, initial table `usuarios_app` with demo row `admin_demo`.
+- FTP image: custom `sysadmin10-ftp:1.0`, based on `alpine:3.20`, uses vsftpd and shares the same `web_content` volume for uploads.
+- Docker network: bridge network `infra_red` with subnet `172.20.0.0/16`.
+- Resource limits: containers are launched with `--memory 512m` and `--cpus 0.50`.
+- Published service IP: `main.sh` detects IPv4 addresses and prompts the user to select the internal server IP when multiple addresses exist.
+- PostgreSQL backups: systemd timer `sysadmin10-pg-backup.timer` runs `/usr/local/bin/sysadmin10_pg_backup.sh` every 10 minutes and stores dumps in `/opt/sysadmin10/backups`.
+- Validation guide: `Practica_10/VALIDACION.md` includes persistence, network isolation, FTP/web shared-volume, and resource-limit checks.
+- VM status: not yet confirmed by user.
 
 ## Known Technical Debt
 
