@@ -162,6 +162,15 @@ Practica_10/
     Dockerfile
     vsftpd.conf
     entrypoint.sh
+Practica_11/
+  main.sh
+  docker-compose.yml
+  .env.example
+  VALIDACION.md
+  REPORTE.md
+  nginx/
+  app/
+  postgres/
 ```
 
 ## Module Inventory
@@ -170,7 +179,7 @@ Practica_10/
 
 | Module | Current Purpose | Notes / Risks |
 | --- | --- | --- |
-| `Modulos_Linux/contenedores.sh` | Practice 10 helper module for Docker installation, Docker network/volume creation, image builds, container recreation, PostgreSQL readiness checks, web volume seeding, and automated PostgreSQL backup timer setup. | Added for Linux-only container practice. Uses Docker CLI and systemd. VM execution pending user confirmation. |
+| `Modulos_Linux/contenedores.sh` | Helper module for Docker installation, Docker Compose availability, Docker network/volume creation, image builds, container recreation, PostgreSQL readiness checks, web volume seeding, and automated PostgreSQL backup timer setup. | Used by practices 10 and 11. Uses Docker CLI and systemd. VM execution pending user confirmation. |
 | `Modulos_Linux/generales.sh` | Provides `verificar_servicio` to install apt packages if missing. | Uses `apt update -y` and `apt install -y`. Output is not very quiet. |
 | `Modulos_Linux/modulos_redes.sh` | Provides `asignar_ip_estatica`. | Currently assumes `enp0s3` for internet and `enp0s8` for internal adapter, rewrites `/etc/netplan/50-cloud-init.yaml`, and sets a default route through the internal IP. Needs review before reuse. Fixed names are acceptable only after user confirms them. |
 | `Modulos_Linux/validadores.sh` | IPv4, subnet mask, network/broadcast, text, password, username validations. | Uses some shell utilities like `awk`. Generally reusable. |
@@ -201,6 +210,7 @@ This log records what exists now, not necessarily what has been verified as work
 | Practice 6 | `Practica_6/HTTP.sh` | `Practica_6/HTTP.ps1` | Existing, needs path improvements on Linux. | Linux uses fragile `source ../Modulos_Linux/librerianueva.sh`; Windows uses `$PSScriptRoot`. |
 | Practice 7 | `Practica_7/main.sh` plus service scripts | `Practica_7/ftp.ps1`, `Practica_7/http.ps1` | Existing, needs review/fixes before reuse. | `main.sh` calls `instalar_dependencias` before declaring it, which will fail in Bash. Some internal script loading uses `dirname "$0"`, which is better. |
 | Practice 10 | `Practica_10/main.sh` | Not applicable | Implemented locally, VM validation pending. | Linux-only. Deploys Docker containers for custom Alpine Nginx web, PostgreSQL, and FTP on bridge network `infra_red` (`172.20.0.0/16`) with volumes `db_data` and `web_content`, resource limits, and automated PostgreSQL backups to `/opt/sysadmin10/backups`. |
+| Practice 11 | `Practica_11/main.sh` | Not applicable | Implemented locally, VM validation pending. | Linux-only IaC practice using `docker-compose.yml`, `.env`, Nginx load balancer, internal app, PostgreSQL, pgAdmin isolated from host ports, SSH tunnel support, firewall rules, healthchecks, restart policies, and named volume `db_data`. |
 
 ## Practice 10 Implementation Notes
 
@@ -216,6 +226,23 @@ This log records what exists now, not necessarily what has been verified as work
 - Published service IP: `main.sh` detects IPv4 addresses and prompts the user to select the internal server IP when multiple addresses exist.
 - PostgreSQL backups: systemd timer `sysadmin10-pg-backup.timer` runs `/usr/local/bin/sysadmin10_pg_backup.sh` every 10 minutes and stores dumps in `/opt/sysadmin10/backups`.
 - Validation guide: `Practica_10/VALIDACION.md` includes persistence, network isolation, FTP/web shared-volume, and resource-limit checks.
+- VM status: not yet confirmed by user.
+
+## Practice 11 Implementation Notes
+
+- Target system: Ubuntu Server only.
+- Main script: `Practica_11/main.sh`.
+- Orchestration file: `Practica_11/docker-compose.yml`.
+- Environment example: `Practica_11/.env.example`; `main.sh` creates `.env` from it if missing and all credentials/ports are referenced through environment variables.
+- Report base: `Practica_11/REPORTE.md` includes a copy of the compose, `.env` example, Mermaid diagram, and test-log table.
+- Validation guide: `Practica_11/VALIDACION.md` covers isolation, internal DNS, SSH tunnel, persistence, and healthcheck behavior.
+- Services: `balanceador_nginx`, `app_interna`, `base_datos`, and `servidor_pgadmin`.
+- Public entrypoint: only Nginx publishes `${FRONTEND_PORT}:8080`; app, PostgreSQL, and pgAdmin do not publish host ports.
+- Networks: `red_publica` bridge for Nginx/app and `red_datos` internal bridge for PostgreSQL/pgAdmin; Nginx also joins `red_datos` for required internal DNS validation.
+- Security: Nginx disables `server_tokens`; app and Nginx custom images run as non-root users. Firewall allows SSH/frontend and denies common PostgreSQL/pgAdmin host ports.
+- SSH tunnel: `main.sh` updates `/etc/hosts` with `servidor_pgadmin` and `servidor_postgres` container IPs so `ssh -L 8080:servidor_pgadmin:80 usuario@IP_SERVIDOR` works from the client.
+- Persistence: PostgreSQL uses named volume `db_data` and init script `postgres/init.sql` creates table `usuarios_app` with demo row.
+- Resilience: services use `restart: always`; pgAdmin depends on PostgreSQL `service_healthy`.
 - VM status: not yet confirmed by user.
 
 ## Known Technical Debt

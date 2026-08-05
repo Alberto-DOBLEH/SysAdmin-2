@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Practica 11 - IaC con Docker Compose</title>
+  <style>
+    body { margin: 0; font-family: system-ui, sans-serif; background: #0f172a; color: #e2e8f0; }
+    main { width: min(920px, calc(100% - 32px)); margin: 0 auto; padding: 56px 0; }
+    section { border: 1px solid #334155; border-radius: 24px; padding: 32px; background: #111827; }
+    h1 { font-size: clamp(2rem, 6vw, 4rem); line-height: 1; margin: 0 0 18px; }
+    p { color: #cbd5e1; line-height: 1.7; }
+    a { color: #67e8f9; }
+    code { color: #93c5fd; }
+  </style>
+</head>
+<body>
+  <main>
+    <section>
+      <h1>Entrada publica controlada por Nginx</h1>
+      <p>Este balanceador es el unico servicio publicado al host. La aplicacion interna, PostgreSQL y pgAdmin permanecen ocultos dentro de redes Docker.</p>
+      <p>Probar aplicacion secundaria: <a href="/app/">/app/</a></p>
+      <p>Administracion segura: <code>ssh -L 8080:servidor_pgadmin:80 usuario@IP_SERVIDOR</code></p>
+    </section>
+  </main>
+</body>
+</html>

@@ -1,0 +1,83 @@
+services:
+  balanceador_nginx:
+    build:
+      context: ./nginx
+    container_name: servidor_nginx
+    ports:
+      - "${FRONTEND_PORT}:8080"
+    depends_on:
+      app_interna:
+        condition: service_started
+      base_datos:
+        condition: service_healthy
+    networks:
+      - red_publica
+      - red_datos
+    restart: always
+    mem_limit: 256m
+    cpus: 0.50
+
+  app_interna:
+    build:
+      context: ./app
+    container_name: servidor_app
+    environment:
+      APP_MESSAGE: ${APP_MESSAGE}
+    expose:
+      - "8080"
+    networks:
+      - red_publica
+    restart: always
+    mem_limit: 256m
+    cpus: 0.50
+
+  base_datos:
+    image: postgres:16-alpine
+    container_name: servidor_postgres
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - db_data:/var/lib/postgresql/data
+      - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    expose:
+      - "5432"
+    networks:
+      - red_datos
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 15s
+    restart: always
+    mem_limit: 512m
+    cpus: 0.75
+
+  servidor_pgadmin:
+    image: dpage/pgadmin4:8
+    container_name: servidor_pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+    depends_on:
+      base_datos:
+        condition: service_healthy
+    expose:
+      - "80"
+    networks:
+      - red_datos
+    restart: always
+    mem_limit: 384m
+    cpus: 0.50
+
+volumes:
+  db_data:
+
+networks:
+  red_publica:
+    driver: bridge
+  red_datos:
+    driver: bridge
+    internal: true

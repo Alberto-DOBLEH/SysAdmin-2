@@ -32,6 +32,37 @@ instalar_docker_si_falta() {
     systemctl enable --now docker >/dev/null 2>&1 || service docker start >/dev/null 2>&1
 }
 
+instalar_docker_compose_si_falta() {
+    if docker compose version >/dev/null 2>&1; then
+        log_ok "Docker Compose plugin ya esta disponible."
+        return 0
+    fi
+
+    if command -v docker-compose >/dev/null 2>&1; then
+        log_ok "docker-compose ya esta disponible."
+        return 0
+    fi
+
+    log_info "Instalando Docker Compose..."
+    apt-get update -y >/dev/null
+
+    if apt-cache show docker-compose-plugin >/dev/null 2>&1; then
+        DEBIAN_FRONTEND=noninteractive apt-get install -y docker-compose-plugin >/dev/null
+    else
+        DEBIAN_FRONTEND=noninteractive apt-get install -y docker-compose >/dev/null
+    fi
+
+    log_ok "Docker Compose instalado."
+}
+
+compose_cmd() {
+    if docker compose version >/dev/null 2>&1; then
+        docker compose "$@"
+    else
+        docker-compose "$@"
+    fi
+}
+
 crear_red_bridge() {
     local nombre_red="$1"
     local segmento="$2"
