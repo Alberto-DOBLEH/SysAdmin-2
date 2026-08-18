@@ -153,6 +153,7 @@ Practica_7/
   usuarios_ftp.sh
 Practica_10/
   main.sh
+  revision.sh
   VALIDACION.md
   web/
     Dockerfile
@@ -226,6 +227,7 @@ This log records what exists now, not necessarily what has been verified as work
 - Published service IP: `main.sh` detects IPv4 addresses and prompts the user to select the internal server IP when multiple addresses exist.
 - PostgreSQL backups: systemd timer `sysadmin10-pg-backup.timer` runs `/usr/local/bin/sysadmin10_pg_backup.sh` every 10 minutes and stores dumps in `/opt/sysadmin10/backups`.
 - Validation guide: `Practica_10/VALIDACION.md` includes persistence, network isolation, FTP/web shared-volume, and resource-limit checks.
+- Automated review: `Practica_10/revision.sh` runs the four validation tests on the server itself, recreates the DB container to prove persistence, uploads a file via FTP, checks web visibility, shows `docker stats --no-stream`, and writes an evidence log `revision_<fecha>_<hora>.log`.
 - VM status: not yet confirmed by user.
 
 ## Practice 11 Implementation Notes
