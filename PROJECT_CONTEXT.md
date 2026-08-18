@@ -165,6 +165,7 @@ Practica_10/
     entrypoint.sh
 Practica_11/
   main.sh
+  revision.sh
   docker-compose.yml
   .env.example
   VALIDACION.md
@@ -245,6 +246,7 @@ This log records what exists now, not necessarily what has been verified as work
 - SSH tunnel: `main.sh` updates `/etc/hosts` with `servidor_pgadmin` and `servidor_postgres` container IPs so `ssh -L 8080:servidor_pgadmin:80 usuario@IP_SERVIDOR` works from the client.
 - Persistence: PostgreSQL uses named volume `db_data` and init script `postgres/init.sql` creates table `usuarios_app` with demo row.
 - Resilience: services use `restart: always`; pgAdmin depends on PostgreSQL `service_healthy`.
+- Automated review: `Practica_11/revision.sh` runs the four acceptance tests on the server, checks hidden ports and published-port absence, pings the DB service name from Nginx, attempts an SSH tunnel to pgAdmin, stops/restarts the stack with `docker compose down/up` to prove persistence and healthcheck ordering, refreshes `/etc/hosts`, and writes an evidence log `revision_<fecha>_<hora>.log`.
 - VM status: not yet confirmed by user.
 
 ## Known Technical Debt
