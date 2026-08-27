@@ -40,6 +40,7 @@ cargar_env() {
 
 instalar_dependencias_host() {
     log_info "Instalando dependencias del anfitrion: SSH, firewall y utilidades..."
+    esperar_dpkg_lock
     apt-get update -y >/dev/null
     DEBIAN_FRONTEND=noninteractive apt-get install -y openssh-server ufw curl netcat-openbsd >/dev/null
     systemctl enable --now ssh >/dev/null 2>&1 || systemctl enable --now sshd >/dev/null 2>&1 || true

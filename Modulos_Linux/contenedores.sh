@@ -19,11 +19,30 @@ require_root() {
     fi
 }
 
+esperar_dpkg_lock() {
+    local intentos=30
+    if pgrep -x unattended-upgr >/dev/null 2>&1; then
+        log_info "Esperando a que unattended-upgrades termine..."
+        for _ in $(seq 1 "$intentos"); do
+            if ! pgrep -x unattended-upgr >/dev/null 2>&1; then
+                break
+            fi
+            sleep 2
+        done
+        if pgrep -x unattended-upgr >/dev/null 2>&1; then
+            log_info "Forzando cierre de unattended-upgrades..."
+            killall -9 unattended-upgr 2>/dev/null || true
+            sleep 2
+        fi
+    fi
+}
+
 instalar_docker_si_falta() {
     if command -v docker >/dev/null 2>&1; then
         log_ok "Docker ya esta instalado."
     else
         log_info "Instalando Docker y dependencias minimas..."
+        esperar_dpkg_lock
         apt-get update -y >/dev/null
         DEBIAN_FRONTEND=noninteractive apt-get install -y docker.io curl ca-certificates >/dev/null
         log_ok "Docker instalado."
@@ -44,6 +63,7 @@ instalar_docker_compose_si_falta() {
     fi
 
     log_info "Instalando Docker Compose..."
+    esperar_dpkg_lock
     apt-get update -y >/dev/null
 
     if apt-cache show docker-compose-plugin >/dev/null 2>&1; then
