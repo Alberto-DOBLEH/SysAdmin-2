@@ -155,11 +155,19 @@ prueba_11_3() {
     fi
 
     emitir "-- Verificando que pgAdmin responde internamente:"
-    codigo="$(curl --max-time 5 -s -o /dev/null -w '%{http_code}' "http://servidor_pgadmin:80")"
+    local intentos
+    codigo="000"
+    for intentos in 1 2 3 4 5; do
+        if docker exec "$NGINX_CONTAINER" wget -q -O /dev/null -T 3 "http://servidor_pgadmin:80" 2>/dev/null; then
+            codigo="200"
+            break
+        fi
+        sleep 2
+    done
     if [ "$codigo" != "000" ]; then
         emitir "[OK] pgAdmin responde internamente con HTTP $codigo."
     else
-        emitir "[ERROR] pgAdmin no respondio internamente."
+        emitir "[ERROR] pgAdmin no respondio internamente despues de $intentos intentos."
         interno_ok=0
     fi
 
@@ -301,6 +309,8 @@ main() {
     if ! verificar_prerequisitos; then
         exit 1
     fi
+
+    refrescar_hosts 2>/dev/null || true
 
     prueba_11_1
     prueba_11_2
