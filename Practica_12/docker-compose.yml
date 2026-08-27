@@ -3,6 +3,7 @@ services:
     image: ghcr.io/docker-mailserver/docker-mailserver:latest
     container_name: mailserver
     hostname: ${HOSTNAME}
+    domainname: ${DOMAIN}
     ports:
       - "25:25"    # SMTP
       - "143:143"  # IMAP
