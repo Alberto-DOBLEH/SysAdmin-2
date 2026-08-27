@@ -256,7 +256,7 @@ This log records what exists now, not necessarily what has been verified as work
 - Services: `balanceador_nginx`, `app_interna`, `base_datos`, and `servidor_pgadmin`.
 - Public entrypoint: only Nginx publishes `${FRONTEND_PORT}:8080`; app, PostgreSQL, and pgAdmin do not publish host ports.
 - Networks: `red_publica` bridge for Nginx/app and `red_datos` internal bridge for PostgreSQL/pgAdmin; Nginx also joins `red_datos` for required internal DNS validation.
-- Security: Nginx disables `server_tokens`; app and Nginx custom images run as root inside the container (Docker namespace isolation). Earlier versions ran as non-root users but this caused nginx to crash on Alpine due to temp directory permission issues. Firewall allows SSH/frontend and denies common PostgreSQL/pgAdmin host ports.
+- Security: Nginx disables `server_tokens`; app and Nginx custom images run as root inside the container (Docker namespace isolation). Earlier versions ran as non-root users but this caused nginx to crash on Alpine due to temp directory permission issues. pgAdmin email changed from `admin@sysadmin.local` to `admin@sysadmin.com` because pgAdmin 8 rejects non-standard domains. Firewall allows SSH/frontend and denies common PostgreSQL/pgAdmin host ports.
 - SSH tunnel: `main.sh` updates `/etc/hosts` with `servidor_pgadmin` and `servidor_postgres` container IPs so `ssh -L 8080:servidor_pgadmin:80 usuario@IP_SERVIDOR` works from the client.
 - Persistence: PostgreSQL uses named volume `db_data` and init script `postgres/init.sql` creates table `usuarios_app` with demo row.
 - Resilience: services use `restart: always`; pgAdmin depends on PostgreSQL `service_healthy`.
