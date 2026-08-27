@@ -88,12 +88,19 @@ esperar_mailserver() {
     log_info "Esperando a que $WEBMAIL_CONTAINER este activo..."
     for _ in $(seq 1 60); do
         if [ "$(docker inspect -f '{{.State.Status}}' "$WEBMAIL_CONTAINER" 2>/dev/null || echo starting)" = "running" ]; then
-            log_ok "$WEBMAIL_CONTAINER esta activo."
-            return 0
+            break
         fi
         sleep 2
     done
-    log_error "$WEBMAIL_CONTAINER no inicio a tiempo."
+    log_info "Esperando a que Roundcube responda en el puerto $WEBMAIL_PORT..."
+    for _ in $(seq 1 60); do
+        if curl --max-time 3 -s -o /dev/null "http://127.0.0.1:${WEBMAIL_PORT}" 2>/dev/null; then
+            log_ok "Roundcube esta respondiendo en el puerto $WEBMAIL_PORT."
+            return 0
+        fi
+        sleep 3
+    done
+    log_error "Roundcube no respondio en el puerto $WEBMAIL_PORT a tiempo."
     return 1
 }
 
