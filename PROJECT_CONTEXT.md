@@ -226,7 +226,7 @@ This log records what exists now, not necessarily what has been verified as work
 | Practice 7 | `Practica_7/main.sh` plus service scripts | `Practica_7/ftp.ps1`, `Practica_7/http.ps1` | Existing, needs review/fixes before reuse. | `main.sh` calls `instalar_dependencias` before declaring it, which will fail in Bash. Some internal script loading uses `dirname "$0"`, which is better. |
 | Practice 10 | `Practica_10/main.sh` | Not applicable | Implemented locally, VM validated and working. | Linux-only. Deploys Docker containers for custom Alpine Nginx web, PostgreSQL, and FTP on bridge network `infra_red` (`172.20.0.0/16`) with volumes `db_data` and `web_content`, resource limits, and automated PostgreSQL backups to `/opt/sysadmin10/backups`. Fix applied: web Dockerfile removed `USER webuser` to resolve nginx startup crash. All 4 revision tests pass. |
 | Practice 11 | `Practica_11/main.sh` | Not applicable | Implemented locally, VM test pending after fixes. | Linux-only IaC practice using `docker-compose.yml`, `.env`, Nginx load balancer, internal app, PostgreSQL, pgAdmin isolated from host ports, SSH tunnel support, firewall rules, healthchecks, restart policies, and named volume `db_data`. Fixes: CRLF stripping in .env, removed non-root USER from nginx/app Dockerfiles. |
-| Practice 12 | `Practica_12/main.sh` | Not applicable | Implemented locally, VM test pending. | Linux-only mail server practice using docker-mailserver plus Roundcube webmail, preconfigured mail accounts and DKIM keys, internal DB network, and automated review. Fixes: CRLF stripping in .env, logs/ directory creation before compose mount. |
+| Practice 12 | `Practica_12/main.sh` | Not applicable | Implemented locally, VM validated and working. | Linux-only mail server practice using docker-mailserver plus Roundcube webmail, preconfigured mail accounts and DKIM keys, internal DB network, and automated review. Fixes: CRLF stripping in .env, logs/ directory creation before compose mount, disabled fail2ban (caused auth timeouts), plain IMAP on port 143 (no tls:// prefix). |
 
 ## Practice 10 Implementation Notes
 
@@ -278,7 +278,7 @@ This log records what exists now, not necessarily what has been verified as work
 - Firewall: `main.sh` enables ufw and allows SSH 22 plus TCP 25/143/587/993/8081.
 - Automated review: `Practica_12/revision.sh` checks the stack is up and MariaDB healthy, verifies ports respond, lists the five accounts, sends a test mail via `sendmail` and confirms `status=sent` in the mail log, checks webmail responds on 8081, shows DKIM info, and writes an evidence log `revision_<fecha>_<hora>.log`.
 - Validation/report bases: `Practica_12/VALIDACION.md` and `Practica_12/REPORTE.md`.
-- VM status: pending test after fixes (logs/ dir creation, CRLF stripping, credential cleanup in mail.txt).
+- VM status: confirmed working by user. Roundcube login works with `goku@reprobados.com` / `PasswordSegura123!`. Fixes required: CRLF in .env, logs/ directory creation, disabled fail2ban (was banning container IPs causing 61s IMAP timeouts), use plain IMAP on port 143 (no `tls://` prefix).
 
 ## Known Technical Debt
 
@@ -325,3 +325,4 @@ Add entries here after user confirms a script worked inside the target VM.
 | Date | Practice | System | Result | Notes |
 | --- | --- | --- | --- | --- |
 | 2026-08-27 | Practice 10 | Ubuntu Server | PASS | All 4 revision tests passed. Fix: removed `USER webuser` from web Dockerfile to resolve nginx crash on Alpine 3.20. |
+| 2026-08-27 | Practice 12 | Ubuntu Server | PASS | Roundcube webmail login working. Fixes: CRLF in .env, logs/ dir, disabled fail2ban, plain IMAP (no tls://). |
