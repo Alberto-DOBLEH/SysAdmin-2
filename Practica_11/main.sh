@@ -11,11 +11,16 @@ ENV_EXAMPLE="$SCRIPT_DIR/.env.example"
 
 crear_env_si_falta() {
     if [ -f "$ENV_FILE" ]; then
+        if grep -qP '\r' "$ENV_FILE" 2>/dev/null; then
+            log_info "Corrigiendo saltos de linea CRLF en .env..."
+            sed -i 's/\r$//' "$ENV_FILE"
+        fi
         log_ok "Archivo .env existente."
         return 0
     fi
 
     cp "$ENV_EXAMPLE" "$ENV_FILE"
+    sed -i 's/\r$//' "$ENV_FILE"
     chmod 600 "$ENV_FILE"
     log_ok "Archivo .env creado desde .env.example. Puede editarlo antes de volver a ejecutar si desea otras credenciales."
 }

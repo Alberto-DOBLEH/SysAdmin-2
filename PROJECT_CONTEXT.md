@@ -225,7 +225,7 @@ This log records what exists now, not necessarily what has been verified as work
 | Practice 6 | `Practica_6/HTTP.sh` | `Practica_6/HTTP.ps1` | Existing, needs path improvements on Linux. | Linux uses fragile `source ../Modulos_Linux/librerianueva.sh`; Windows uses `$PSScriptRoot`. |
 | Practice 7 | `Practica_7/main.sh` plus service scripts | `Practica_7/ftp.ps1`, `Practica_7/http.ps1` | Existing, needs review/fixes before reuse. | `main.sh` calls `instalar_dependencias` before declaring it, which will fail in Bash. Some internal script loading uses `dirname "$0"`, which is better. |
 | Practice 10 | `Practica_10/main.sh` | Not applicable | Implemented locally, VM validated and working. | Linux-only. Deploys Docker containers for custom Alpine Nginx web, PostgreSQL, and FTP on bridge network `infra_red` (`172.20.0.0/16`) with volumes `db_data` and `web_content`, resource limits, and automated PostgreSQL backups to `/opt/sysadmin10/backups`. Fix applied: web Dockerfile removed `USER webuser` to resolve nginx startup crash. All 4 revision tests pass. |
-| Practice 11 | `Practica_11/main.sh` | Not applicable | Implemented locally, VM validation pending. | Linux-only IaC practice using `docker-compose.yml`, `.env`, Nginx load balancer, internal app, PostgreSQL, pgAdmin isolated from host ports, SSH tunnel support, firewall rules, healthchecks, restart policies, and named volume `db_data`. |
+| Practice 11 | `Practica_11/main.sh` | Not applicable | Implemented locally, VM test pending after fixes. | Linux-only IaC practice using `docker-compose.yml`, `.env`, Nginx load balancer, internal app, PostgreSQL, pgAdmin isolated from host ports, SSH tunnel support, firewall rules, healthchecks, restart policies, and named volume `db_data`. Fixes: CRLF stripping in .env, removed non-root USER from nginx/app Dockerfiles. |
 | Practice 12 | `Practica_12/main.sh` | Not applicable | Implemented locally, VM validation pending. | Linux-only mail server practice using docker-mailserver plus Roundcube webmail, preconfigured mail accounts and DKIM keys, internal DB network, and automated review. |
 
 ## Practice 10 Implementation Notes
@@ -250,18 +250,18 @@ This log records what exists now, not necessarily what has been verified as work
 - Target system: Ubuntu Server only.
 - Main script: `Practica_11/main.sh`.
 - Orchestration file: `Practica_11/docker-compose.yml`.
-- Environment example: `Practica_11/.env.example`; `main.sh` creates `.env` from it if missing and all credentials/ports are referenced through environment variables.
+- Environment example: `Practica_11/.env.example`; `main.sh` creates `.env` from it if missing and all credentials/ports are referenced through environment variables. `main.sh` also strips CRLF from `.env` to prevent bash sourcing errors.
 - Report base: `Practica_11/REPORTE.md` includes a copy of the compose, `.env` example, Mermaid diagram, and test-log table.
 - Validation guide: `Practica_11/VALIDACION.md` covers isolation, internal DNS, SSH tunnel, persistence, and healthcheck behavior.
 - Services: `balanceador_nginx`, `app_interna`, `base_datos`, and `servidor_pgadmin`.
 - Public entrypoint: only Nginx publishes `${FRONTEND_PORT}:8080`; app, PostgreSQL, and pgAdmin do not publish host ports.
 - Networks: `red_publica` bridge for Nginx/app and `red_datos` internal bridge for PostgreSQL/pgAdmin; Nginx also joins `red_datos` for required internal DNS validation.
-- Security: Nginx disables `server_tokens`; app and Nginx custom images run as non-root users. Firewall allows SSH/frontend and denies common PostgreSQL/pgAdmin host ports.
+- Security: Nginx disables `server_tokens`; app and Nginx custom images run as root inside the container (Docker namespace isolation). Earlier versions ran as non-root users but this caused nginx to crash on Alpine due to temp directory permission issues. Firewall allows SSH/frontend and denies common PostgreSQL/pgAdmin host ports.
 - SSH tunnel: `main.sh` updates `/etc/hosts` with `servidor_pgadmin` and `servidor_postgres` container IPs so `ssh -L 8080:servidor_pgadmin:80 usuario@IP_SERVIDOR` works from the client.
 - Persistence: PostgreSQL uses named volume `db_data` and init script `postgres/init.sql` creates table `usuarios_app` with demo row.
 - Resilience: services use `restart: always`; pgAdmin depends on PostgreSQL `service_healthy`.
 - Automated review: `Practica_11/revision.sh` runs the four acceptance tests on the server, checks hidden ports and published-port absence, pings the DB service name from Nginx, attempts an SSH tunnel to pgAdmin, stops/restarts the stack with `docker compose down/up` to prove persistence and healthcheck ordering, refreshes `/etc/hosts`, and writes an evidence log `revision_<fecha>_<hora>.log`.
-- VM status: not yet confirmed by user.
+- VM status: pending re-test after fixes (CRLF in .env, nginx/app Dockerfile USER directive).
 
 ## Practice 12 Implementation Notes
 
