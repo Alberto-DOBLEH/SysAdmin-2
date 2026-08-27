@@ -173,6 +173,19 @@ Practica_11/
   nginx/
   app/
   postgres/
+Practica_12/
+  main.sh
+  revision.sh
+  docker-compose.yml
+  .env.example
+  .gitignore
+  VALIDACION.md
+  REPORTE.md
+  config/
+    postfix-accounts.cf
+    postfix-main.cf
+    dovecot-quotas.cf
+    opendkim/
 ```
 
 ## Module Inventory
@@ -211,15 +224,16 @@ This log records what exists now, not necessarily what has been verified as work
 | Practice 5 | `Practica_5/FTP.sh` | `Practica_5/FTP.ps1` | Existing, needs review before reuse. | FTP setup and user management exist. Some logic duplicated outside modules. |
 | Practice 6 | `Practica_6/HTTP.sh` | `Practica_6/HTTP.ps1` | Existing, needs path improvements on Linux. | Linux uses fragile `source ../Modulos_Linux/librerianueva.sh`; Windows uses `$PSScriptRoot`. |
 | Practice 7 | `Practica_7/main.sh` plus service scripts | `Practica_7/ftp.ps1`, `Practica_7/http.ps1` | Existing, needs review/fixes before reuse. | `main.sh` calls `instalar_dependencias` before declaring it, which will fail in Bash. Some internal script loading uses `dirname "$0"`, which is better. |
-| Practice 10 | `Practica_10/main.sh` | Not applicable | Implemented locally, VM validation pending. | Linux-only. Deploys Docker containers for custom Alpine Nginx web, PostgreSQL, and FTP on bridge network `infra_red` (`172.20.0.0/16`) with volumes `db_data` and `web_content`, resource limits, and automated PostgreSQL backups to `/opt/sysadmin10/backups`. |
+| Practice 10 | `Practica_10/main.sh` | Not applicable | Implemented locally, VM validated and working. | Linux-only. Deploys Docker containers for custom Alpine Nginx web, PostgreSQL, and FTP on bridge network `infra_red` (`172.20.0.0/16`) with volumes `db_data` and `web_content`, resource limits, and automated PostgreSQL backups to `/opt/sysadmin10/backups`. Fix applied: web Dockerfile removed `USER webuser` to resolve nginx startup crash. All 4 revision tests pass. |
 | Practice 11 | `Practica_11/main.sh` | Not applicable | Implemented locally, VM validation pending. | Linux-only IaC practice using `docker-compose.yml`, `.env`, Nginx load balancer, internal app, PostgreSQL, pgAdmin isolated from host ports, SSH tunnel support, firewall rules, healthchecks, restart policies, and named volume `db_data`. |
+| Practice 12 | `Practica_12/main.sh` | Not applicable | Implemented locally, VM validation pending. | Linux-only mail server practice using docker-mailserver plus Roundcube webmail, preconfigured mail accounts and DKIM keys, internal DB network, and automated review. |
 
 ## Practice 10 Implementation Notes
 
 - Target system: Ubuntu Server only.
 - Main script: `Practica_10/main.sh`.
 - New module: `Modulos_Linux/contenedores.sh`.
-- Web image: custom `sysadmin10-web:1.0`, based on `alpine:3.20`, installs Nginx, disables `server_tokens`, listens on port `8080`, and runs as non-root user `webuser` UID `1000`.
+- Web image: custom `sysadmin10-web:1.0`, based on `alpine:3.20`, installs Nginx, disables `server_tokens`, listens on port `8080`, and runs as root inside the container (Docker namespace isolation provides the security boundary). Earlier versions ran as non-root `webuser` UID `1000` but this caused nginx to crash on startup due to Alpine temp directory permission issues.
 - Web content: custom static HTML/CSS/SVG under `Practica_10/web/site`; seeded into Docker volume `web_content`.
 - Database: `postgres:16-alpine`, container `sysadmin10_postgres`, persistent volume `db_data`, database `usuarios`, user `admin`, initial table `usuarios_app` with demo row `admin_demo`.
 - FTP image: custom `sysadmin10-ftp:1.0`, based on `alpine:3.20`, uses vsftpd and shares the same `web_content` volume for uploads.
@@ -229,7 +243,7 @@ This log records what exists now, not necessarily what has been verified as work
 - PostgreSQL backups: systemd timer `sysadmin10-pg-backup.timer` runs `/usr/local/bin/sysadmin10_pg_backup.sh` every 10 minutes and stores dumps in `/opt/sysadmin10/backups`.
 - Validation guide: `Practica_10/VALIDACION.md` includes persistence, network isolation, FTP/web shared-volume, and resource-limit checks.
 - Automated review: `Practica_10/revision.sh` runs the four validation tests on the server itself, recreates the DB container to prove persistence, uploads a file via FTP, checks web visibility, shows `docker stats --no-stream`, and writes an evidence log `revision_<fecha>_<hora>.log`.
-- VM status: not yet confirmed by user.
+- VM status: confirmed working by user. All 4 automated revision tests pass (10.1 persistencia BD, 10.2 aislamiento de red, 10.3 permisos FTP y publicacion web, 10.4 limites de recursos).
 
 ## Practice 11 Implementation Notes
 
@@ -247,6 +261,23 @@ This log records what exists now, not necessarily what has been verified as work
 - Persistence: PostgreSQL uses named volume `db_data` and init script `postgres/init.sql` creates table `usuarios_app` with demo row.
 - Resilience: services use `restart: always`; pgAdmin depends on PostgreSQL `service_healthy`.
 - Automated review: `Practica_11/revision.sh` runs the four acceptance tests on the server, checks hidden ports and published-port absence, pings the DB service name from Nginx, attempts an SSH tunnel to pgAdmin, stops/restarts the stack with `docker compose down/up` to prove persistence and healthcheck ordering, refreshes `/etc/hosts`, and writes an evidence log `revision_<fecha>_<hora>.log`.
+- VM status: not yet confirmed by user.
+
+## Practice 12 Implementation Notes
+
+- Target system: Ubuntu Server only.
+- Main script: `Practica_12/main.sh`.
+- Orchestration file: `Practica_12/docker-compose.yml`.
+- Environment example: `Practica_12/.env.example`; `main.sh` creates `.env` from it if missing and all credentials are referenced through environment variables.
+- Services: `mailserver` (docker-mailserver), `roundcube-db` (MariaDB 10.5), and `roundcubemail` (Roundcube webmail).
+- Container names kept identical to the reference repo (ADMINISTRACION-DE-SISTEMAS): `mailserver`, `roundcube-db`, `roundcubemail`, so documented `docker exec mailserver setup ...` commands work as-is.
+- Published ports: `25` SMTP, `143` IMAP, `587` submission, `993` IMAPS on mailserver; `8081:80` for Roundcube webmail. MariaDB is not published.
+- Networks: `red_correo` bridge for mailserver/webmail and `red_datos_interna` internal bridge for MariaDB; webmail joins both.
+- Persistence: named volumes `mail_data`, `mail_state`, and `roundcube_db_data`; mail logs bound to `Practica_12/logs` (gitignored).
+- Preconfigured accounts: `Practica_12/config/postfix-accounts.cf` ships five accounts for `reprobados.com` (director, admin, kami, goku, vegeta) with password `PasswordSegura123!` (hash verified locally with python crypt). DKIM keys for `mail._domainkey.reprobados.com` are committed under `config/opendkim/`.
+- Firewall: `main.sh` enables ufw and allows SSH 22 plus TCP 25/143/587/993/8081.
+- Automated review: `Practica_12/revision.sh` checks the stack is up and MariaDB healthy, verifies ports respond, lists the five accounts, sends a test mail via `sendmail` and confirms `status=sent` in the mail log, checks webmail responds on 8081, shows DKIM info, and writes an evidence log `revision_<fecha>_<hora>.log`.
+- Validation/report bases: `Practica_12/VALIDACION.md` and `Practica_12/REPORTE.md`.
 - VM status: not yet confirmed by user.
 
 ## Known Technical Debt
@@ -293,4 +324,4 @@ Add entries here after user confirms a script worked inside the target VM.
 
 | Date | Practice | System | Result | Notes |
 | --- | --- | --- | --- | --- |
-| Pending | Pending | Pending | Pending | Pending |
+| 2026-08-27 | Practice 10 | Ubuntu Server | PASS | All 4 revision tests passed. Fix: removed `USER webuser` from web Dockerfile to resolve nginx crash on Alpine 3.20. |
